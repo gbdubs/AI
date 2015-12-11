@@ -24,32 +24,41 @@ from six.moves import urllib
 from six.moves import xrange  # pylint: disable=redefined-builtin
 import tensorflow as tf
 import zipfile
+import urllib2
 
 
-# Step 1: Download the data.
-url = 'http://mattmahoney.net/dc/'
-def maybe_download(filename, expected_bytes):
-  """Download a file if not present, and make sure it's the right size."""
+# Get Wikipedia Page
+def get_wikipedia_article(topic_name):
+  opener = urllib2.build_opener()
+  opener.addheaders = [('User-agent', 'Mozilla/5.0')]
+  infile = opener.open('http://en.wikipedia.org/w/index.php?title=Albert_Einstein&printable=yes')
+  page = infile.read()
+  return page
+
+def delete_noise(words):
+  new_words = list()
+  illegal = set('<>0123456789&^%$#@=*+|')
+  stop_words = set(["a","about","above","after","again","against","all","am","an","and","any","are","aren't","as","at","be","because","been","before","being","below","between","both","but","by","can't","cannot","could","couldn't","did","didn't","do","does","doesn't","doing","don't","down","during","each","few","for","from","further","had","hadn't","has","hasn't","have","haven't","having","he","he'd","he'll","he's","her","here","here's","hers","herself","him","himself","his","how","how's","i","i'd","i'll","i'm","i've","if","in","into","is","isn't","it","it's","its","itself","let's","me","more","most","mustn't","my","myself","no","nor","not","of","off","on","once","only","or","other","ought","our","ours  ourselves","out","over","own","same","shan't","she","she'd","she'll","she's","should","shouldn't","so","some","such","than","that","that's","the","their","theirs","them","themselves","then","there","there's","these","they","they'd","they'll","they're","they've","this","those","through","to","too","under","until","up","very","was","wasn't","we","we'd","we'll","we're","we've","were","weren't","what","what's","when","when's","where","where's","which","while","who","who's","whom","why","why's","with","won't","would","wouldn't","you","you'd","you'll","you're","you've","your","yours","yourself","yourselves"])
+  for word in words:
+    word = word.strip(',.;:?!()-[]{} ').lower()
+    if not any((c in illegal) for c in word):
+      if word not in stop_words:
+        new_words.append(word)
+  return new_words
+
+root = '/home/u/fall12/gward/Desktop/AI/texts/'
+def get_data(filename):
+  """Get a file and return back the file as a list of slightly cleaned words."""
+  filename = root + filename;
   if not os.path.exists(filename):
-    filename, _ = urllib.request.urlretrieve(url + filename, filename)
-  statinfo = os.stat(filename)
-  if statinfo.st_size == expected_bytes:
-    print('Found and verified', filename)
-  else:
-    print(statinfo.st_size)
-    raise Exception(
-        'Failed to verify ' + filename + '. Can you get to it with a browser?')
-  return filename
-filename = maybe_download('text8.zip', 31344016)
+    print("File ", filename, " wasn't found... please try again.\n")
+    raise Exception("FILE NOT FOUND")
+  f = open(filename)
+  words = f.read().split()
+  cleaned_words = delete_noise(words)
+  return cleaned_words
 
-# Read the data into a string.
-def read_data(filename):
-  f = zipfile.ZipFile(filename)
-  for name in f.namelist():
-    return f.read(name).split()
-  f.close()
-words = read_data(filename)
-print('Data size', len(words))
+words = get_data(filename="bio.md")
 
 
 # Step 2: Build the dictionary and replace rare words with UNK token.
@@ -74,9 +83,10 @@ def build_dataset(words):
   return data, count, dictionary, reverse_dictionary
 data, count, dictionary, reverse_dictionary = build_dataset(words)
 del words  # Hint to reduce memory.
-print('Most common words (+UNK)', count[:5])
+print('Most common words (+UNK)', count[:25])
 print('Sample data', data[:10])
 data_index = 0
+
 
 
 # Step 4: Function to generate a training batch for the skip-gram model.
