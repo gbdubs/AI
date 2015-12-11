@@ -26,11 +26,14 @@ def article_found(json_response):
 	return True
 
 def get_content_from_json(json_response):
-	page_id_start = json_response.index("\"pageid\":") + 9
-	page_id_end = json_response.index(',', page_id_start)
-	page_id = json_response[page_id_start: page_id_end]
-	resp = json.loads(json_response)
-	return resp["query"]["pages"][page_id]["extract"].encode('utf-8')
+	try:
+		page_id_start = json_response.index("\"pageid\":") + 9
+		page_id_end = json_response.index(',', page_id_start)
+		page_id = json_response[page_id_start: page_id_end]
+		resp = json.loads(json_response)
+		return resp["query"]["pages"][page_id]["extract"].encode('utf-8')
+	except ValueError:
+		return None
 
 def get_wikipedia_article(topic_name):
 	opener = urllib2.build_opener()
@@ -81,3 +84,27 @@ def get_word_list(topic_name):
 		f.close()
 		print "==>  RETURNING WORD LIST SUCCESSFULLY  <==\n"
 		return data_list
+
+def is_worth_processing(word_list):
+	if word_list is None:
+		return False
+	if len(word_list) < 20:
+		return False
+	if word_list[0] == 'redirect':
+		return False
+	if word_list[1] == 'may' and word_list[2] == 'refer':
+		return False
+	return True
+
+
+def get_cleaned_wiki_article_word_list_on_topic(topic_name):
+	l = get_word_list(topic_name)
+	if is_worth_processing(l) :
+		return l
+	return None
+
+def main():
+	print get_cleaned_wiki_article_word_list_on_topic("proton")
+
+if __name__ == "__main__":
+	main()
