@@ -1,4 +1,6 @@
 **.DS_Store
 .*
+**.pyc
 !/.gitignore
+topia/*
 running/wikipedia/*

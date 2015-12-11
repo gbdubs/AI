@@ -28,11 +28,7 @@ def article_found(json_response):
 def get_content_from_json(json_response):
 	page_id_start = json_response.index("\"pageid\":") + 9
 	page_id_end = json_response.index(',', page_id_start)
-	print page_id_start
-	print page_id_end
 	page_id = json_response[page_id_start: page_id_end]
-	print page_id
-
 	resp = json.loads(json_response)
 	return resp["query"]["pages"][page_id]["extract"].encode('utf-8')
 
@@ -80,8 +76,8 @@ def get_word_list(topic_name):
 			return None
 		data_list = process_article(article)
 		data = " ".join(data_list)
-		print(data)
 		f = open(expected_path, 'w')
 		f.write(data)
+		f.close()
 		print "==>  RETURNING WORD LIST SUCCESSFULLY  <==\n"
 		return data_list
