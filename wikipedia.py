@@ -85,16 +85,3 @@ def get_word_list(topic_name):
 		f.write(data)
 		print "==>  RETURNING WORD LIST SUCCESSFULLY  <==\n"
 		return data_list
-
-def main():
-	get_word_list("George Lucas")
-	get_word_list("R2D2")
-	get_word_list("phtosynthesize")
-	get_word_list("icraq")
-
-
-
-
-
-if __name__ == '__main__':
-	main()
