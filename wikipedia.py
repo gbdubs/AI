@@ -1,6 +1,8 @@
 import urllib2
 import json
 import os.path
+from os import listdir
+from os.path import isfile, join
 
 data_root = '/home/u/fall12/gward/Desktop/AI/running/wikipedia/'
 
@@ -96,15 +98,26 @@ def is_worth_processing(word_list):
 		return False
 	return True
 
-
 def get_cleaned_wiki_article_word_list_on_topic(topic_name):
 	l = get_word_list(topic_name)
 	if is_worth_processing(l) :
 		return l
 	return None
 
+def get_all_wiki_files_as_list():
+	onlyfiles = sorted([f for f in listdir(data_root) if isfile(join(data_root, f))])
+	result = list()
+	for f in onlyfiles:
+		print f
+		l = get_cleaned_wiki_article_word_list_on_topic(f[:-4])
+		if l is not None:
+			result.append("NEWFILENEWFILE")
+			result.extend(l)
+	return result
+
+
 def main():
-	print get_cleaned_wiki_article_word_list_on_topic("proton")
+	get_all_wiki_files_as_list()
 
 if __name__ == "__main__":
 	main()

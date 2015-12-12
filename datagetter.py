@@ -6,12 +6,23 @@ extractor = extract.TermExtractor()
 extractor.filter = extract.permissiveFilter
 
 training_path = '/home/u/fall12/gward/Desktop/AI/data/training_set.tsv'
+testing_path = '/home/u/fall12/gward/Desktop/AI/data/validation_set.tsv'
+
+def get_testing_lines():
+	if os.path.isfile(testing_path):
+		f = open(testing_path, 'r')
+		data = f.read().split("\n")
+		f.close()
+		return data[1:]
+	else:
+		print " =!=!=!=!= TRAINING FILE WAS NOT FOUND. =!=!=!=!="
+
 def get_training_lines():
 	if os.path.isfile(training_path):
 		f = open(training_path, 'r')
 		data = f.read().split("\n")
 		f.close()
-		return data
+		return data[1:]
 	else:
 		print " =!=!=!=!= TRAINING FILE WAS NOT FOUND. =!=!=!=!="
 
@@ -46,11 +57,25 @@ def get_answer(tsv_line, n):
 	else: 
 		end = get_nth_tab(tsv_line, 4 + n)
 	return tsv_line[start:end]
+
+def get_answer_t(tsv_line, n):
+	start = get_nth_tab(tsv_line, 2 + n) + 1
+	if n is 3:
+		end = len(tsv_line)
+	else: 
+		end = get_nth_tab(tsv_line, 3 + n)
+	return tsv_line[start:end]
 	
 def get_answers(tsv_line):
 	answers = dict()
 	for a in range(0, 4):
 		answers["" + chr(65 + a)] = get_answer(tsv_line, a)
+	return answers
+
+def get_answers_t(tsv_line):
+	answers = dict()
+	for a in range(0, 4):
+		answers["" + chr(65 + a)] = get_answer_t(tsv_line, a)
 	return answers
 
 def get_kewords_for_text(text):
@@ -77,7 +102,10 @@ def download_all_resources():
 			get_cleaned_wiki_article_word_list_on_topic(keyword)
 
 def main():
-	download_all_resources()
+	l = get_testing_lines()
+	for s in l:
+		print s
+		print get_answers_t(s)
 
 if __name__ == "__main__":
 	main()
