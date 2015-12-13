@@ -2,11 +2,59 @@ from wikipedia import get_cleaned_wiki_article_word_list_on_topic
 import os.path
 from topia.termextract import extract
 
+# Defines the files that we will keep testing and training data within.
+# These are hardcoded for simplicity.
+training_path = '/home/u/fall12/gward/Desktop/AI/data/training_set.tsv'
+testing_path = '/home/u/fall12/gward/Desktop/AI/data/validation_set.tsv'
+
+
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+#             DOWNLOAD WIKI ARTICLES FROM KEYWORDS              #
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+#  Gets keywords from a given piece of text (Q's or A's), and   #
+#  downloads them using the wikipedia APIs that we created.     #
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # 
+
+def download_all_resources():
+	training_set = get_training_lines()
+	count = 0
+	for tsv_line in training_set:
+		print count
+		count = count+1
+		for keyword in get_keywords(tsv_line):
+			get_cleaned_wiki_article_word_list_on_topic(keyword)
+
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+#                KEYWORD EXTRACTION USING TOPIA                 #
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+#  Gets keywords from a given piece of text (Q's or A's)        #
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # 
+
+def get_kewords_for_text(text):
+	result = set()
+	for kwrd in extractor(text):
+		result.add(kwrd[0])
+	return result
+
+def get_keywords(tsv_line):
+	result = get_kewords_for_text(get_question(tsv_line))
+	answers = get_answers(tsv_line)
+	for val in answers.values():
+		result |= get_kewords_for_text(val)
+	return result
+
+# As was mentioned in the writeup, we use an external library [TOPIA]
+# to extract keywords from our training set, but not our validation set.
 extractor = extract.TermExtractor()
 extractor.filter = extract.permissiveFilter
 
-training_path = '/home/u/fall12/gward/Desktop/AI/data/training_set.tsv'
-testing_path = '/home/u/fall12/gward/Desktop/AI/data/validation_set.tsv'
+
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+#                        GET TSV DATA LINES                     #
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+#  Gets all of the lines for the specific kind of data as tab   #
+#  delimited lines.  Prints errors if they are not found.       #
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # 
 
 def get_testing_lines():
 	if os.path.isfile(testing_path):
@@ -15,7 +63,7 @@ def get_testing_lines():
 		f.close()
 		return data[1:]
 	else:
-		print " =!=!=!=!= TRAINING FILE WAS NOT FOUND. =!=!=!=!="
+		print " =!=!=!=!= TESTING FILE WAS NOT FOUND. =!=!=!=!="
 
 def get_training_lines():
 	if os.path.isfile(training_path):
@@ -25,6 +73,12 @@ def get_training_lines():
 		return data[1:]
 	else:
 		print " =!=!=!=!= TRAINING FILE WAS NOT FOUND. =!=!=!=!="
+
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+#                        GET DATA FROM TSV                      #
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+#  Gets data out of a TSV line using the conventions in our data#
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # 
 
 def get_nth_tab(line, n, start_at=0):
 	if '\t' not in line:
@@ -77,35 +131,3 @@ def get_answers_t(tsv_line):
 	for a in range(0, 4):
 		answers["" + chr(65 + a)] = get_answer_t(tsv_line, a)
 	return answers
-
-def get_kewords_for_text(text):
-	result = set()
-	for kwrd in extractor(text):
-		result.add(kwrd[0])
-	return result
-
-def get_keywords(tsv_line):
-	result = get_kewords_for_text(get_question(tsv_line))
-	answers = get_answers(tsv_line)
-	for val in answers.values():
-		result |= get_kewords_for_text(val)
-	return result
-
-
-def download_all_resources():
-	training_set = get_training_lines()
-	count = 0
-	for tsv_line in training_set:
-		print count
-		count = count+1
-		for keyword in get_keywords(tsv_line):
-			get_cleaned_wiki_article_word_list_on_topic(keyword)
-
-def main():
-	l = get_testing_lines()
-	for s in l:
-		print s
-		print get_answers_t(s)
-
-if __name__ == "__main__":
-	main()
